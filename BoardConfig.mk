@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022 The LineageOS Project
+# Copyright (C) 2024 The TWRP Open Source Project
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -14,8 +14,9 @@ TARGET_CPU_ABI2 :=
 TARGET_CPU_VARIANT := generic
 TARGET_CPU_VARIANT_RUNTIME := cortex-a55
 
+# FIX #1: armv8-2a → armv8-a for 32-bit (MT6768 Cortex-A55 is not armv8-2a)
 TARGET_2ND_ARCH := arm
-TARGET_2ND_ARCH_VARIANT := armv8-2a
+TARGET_2ND_ARCH_VARIANT := armv8-a
 TARGET_2ND_CPU_ABI := armeabi-v7a
 TARGET_2ND_CPU_ABI2 := armeabi
 TARGET_2ND_CPU_VARIANT := generic
@@ -35,7 +36,7 @@ BUILD_BROKEN_DUP_RULES := true
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
 
 # DTBO
-BOARD_KERNEL_SEPARATED_DTBO := true
+# FIX #2: Removed BOARD_KERNEL_SEPARATED_DTBO — no dtbo.img prebuilt in tree
 BOARD_USES_RECOVERY_AS_BOOT := true
 
 # Kernel
@@ -49,7 +50,7 @@ BOARD_KERNEL_TAGS_OFFSET := 0x0bc08000
 BOARD_PAGE_SIZE := 2048
 BOARD_TAGS_OFFSET := 0x0bc08000
 BOARD_RAMDISK_OFFSET := 0x07c08000
-BOARD_DTB_SIZE := 119464
+# FIX #10: Removed hardcoded BOARD_DTB_SIZE (determined at build time from actual dtb.img)
 BOARD_DTB_OFFSET := 0x0bc08000
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2
 BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
@@ -69,6 +70,8 @@ BOARD_AVB_ENABLE := true
 # Partitions configs
 BOARD_SUPER_PARTITION_SIZE := 7755374592
 BOARD_BOOTIMAGE_PARTITION_SIZE := 83886080
+# FIX #6: Added RECOVERYIMAGE_PARTITION_SIZE (required with recovery-as-boot)
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 83886080
 BOARD_USES_METADATA_PARTITION := true
 BOARD_SUPER_PARTITION_GROUPS := main
 BOARD_MAIN_PARTITION_LIST += \
@@ -92,8 +95,7 @@ TARGET_COPY_OUT_VENDOR := vendor
 # Platform
 TARGET_BOARD_PLATFORM := mt6768
 
-# VNDK
-BOARD_VNDK_VERSION := current
+# FIX #4: Removed deprecated BOARD_VNDK_VERSION := current
 
 # Properties
 TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
@@ -102,7 +104,7 @@ TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
 BOARD_HAS_LARGE_FILESYSTEM := true
 BOARD_HAS_NO_SELECT_BUTTON := true
 BOARD_SUPPRESS_SECURE_ERASE := true
-TARGET_NO_RECOVERY := true
+# FIX #3: Removed TARGET_NO_RECOVERY := true (wrong with recovery-as-boot; prevents TWRP image generation)
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery/root/system/etc/recovery.fstab
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 TARGET_USERIMAGES_USE_EXT4 := true
@@ -115,7 +117,8 @@ TARGET_RECOVERY_DEVICE_DIRS := $(DEVICE_PATH)
 TW_INCLUDE_CRYPTO := true
 TW_INCLUDE_CRYPTO_FBE := true
 TW_USE_FSCRYPT_POLICY := 2
-TW_FORCE_KEYMASTER_VER := true
+# FIX #5: Correct variable name and value for keymaster version
+TW_FORCE_KEYMASTER_VER := 4
 
 # Hack
 PLATFORM_SECURITY_PATCH := 2099-12-31
@@ -144,6 +147,12 @@ TW_FRAMERATE := 60
 TW_THEME := portrait_hdpi
 TARGET_USES_MKE2FS := true
 TW_MAX_BRIGHTNESS := 4095
+
+# FIX #7: Added brightness path for MT6768 display backlight
+TW_BRIGHTNESS_PATH := "/sys/class/leds/lcd-backlight/brightness"
+
+# FIX #8: Blacklist non-touch input devices to prevent ghost inputs
+TW_INPUT_BLACKLIST := "hbtp_vm"
 
 # 1080x2400 (portrait)
 TARGET_SCREEN_WIDTH := 1080
@@ -174,6 +183,10 @@ TARGET_OTA_ASSERT_DEVICE := Infinix-X663
 # Init
 TARGET_INIT_VENDOR_LIB := libinit_Infinix-X663
 TARGET_RECOVERY_DEVICE_MODULES := libinit_Infinix-X663
+
+# FIX #12: Moved TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES here from device.mk
+TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES += \
+    $(TARGET_OUT_SHARED_LIBRARIES)/android.hardware.keymaster@4.1
 
 # TWRP Device Version
 TW_DEVICE_VERSION := X663_by_ALBINsRAJ2025

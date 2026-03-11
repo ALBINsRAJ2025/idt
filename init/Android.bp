@@ -1,14 +1,20 @@
+// Copyright (C) 2024 The TWRP Open Source Project
+// SPDX-License-Identifier: Apache-2.0
+
+// FIX #23 + #24: Added vendor_available, platform_apis for TWRP 12 compatibility
 cc_library_static {
     name: "libinit_Infinix-X663",
+    recovery_available: true,
+    vendor_available: true,
     header_libs: [
         "libbase_headers",
     ],
     cflags: [
         "-Wall",
+        "-Wno-unused-variable",
     ],
     static_libs: [
         "libbase",
     ],
     srcs: ["init_Infinix-X663.cpp"],
-    recovery_available: true,
 }
