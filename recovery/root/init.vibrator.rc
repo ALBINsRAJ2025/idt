@@ -1,0 +1,9 @@
+# Vibrator service for MT6768 (Infinix X663)
+# This is a stub — if your device has a vibrator HAL service,
+# replace this with the correct service definition extracted
+# from your stock ROM's init files.
+
+on boot
+    # Enable vibrator device node permissions
+    chmod 0660 /sys/class/timed_output/vibrator/enable
+    chown root system /sys/class/timed_output/vibrator/enable

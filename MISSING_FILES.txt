@@ -1,0 +1,175 @@
+========================================================
+  MISSING FILES — Infinix X663 (MT6768) TWRP 12 Tree
+  Repository: ALBINsRAJ2025/idt
+  Maintainer: ALBINsRAJ2025
+========================================================
+
+The following files CANNOT be auto-generated because they
+are device-specific binary blobs or compiled binaries that
+must be extracted from your stock ROM firmware.
+
+HOW TO EXTRACT FROM STOCK ROM
+-------------------------------
+1. Download your stock ROM zip for the Infinix X663.
+2. Unzip the stock ROM zip file.
+3. Use lpunpack to unpack super.img (if present):
+       lpunpack super.img ./out/
+4. Mount the output images to copy files:
+       mkdir /tmp/vendor && mount -o loop out/vendor.img /tmp/vendor
+       mkdir /tmp/system && mount -o loop out/system.img /tmp/system
+5. Use magiskboot to extract kernel + dtb from boot.img:
+       magiskboot unpack boot.img
+   This produces: kernel  →  copy to prebuilt/kernel
+                  dtb     →  copy to prebuilt/dtb.img
+
+--------------------------------------------------------
+FILE 1: prebuilt/kernel
+  Description : Prebuilt kernel binary
+  Source      : boot.img → magiskboot unpack → "kernel"
+  Destination : prebuilt/kernel
+  Why needed  : TARGET_PREBUILT_KERNEL in BoardConfig.mk
+  CRITICAL    : YES — build will fail without this
+
+FILE 2: prebuilt/dtb.img
+  Description : Device Tree Blob image
+  Source      : boot.img → magiskboot unpack → "dtb"
+  Destination : prebuilt/dtb.img
+  Why needed  : TARGET_PREBUILT_DTB in BoardConfig.mk
+  CRITICAL    : YES — build will fail without this
+
+FILE 3: recovery/root/vendor/bin/hw/android.hardware.gatekeeper@1.0-service
+  Description : Gatekeeper HAL service binary
+  Source      : /vendor/bin/hw/ from stock ROM
+  Destination : recovery/root/vendor/bin/hw/
+  Why needed  : init.recovery.mt6768.rc starts vendor.gatekeeper-1-0
+  CRITICAL    : YES — decryption will fail without this
+
+FILE 4: recovery/root/vendor/bin/hw/android.hardware.keymaster@4.1-service.trustonic
+  Description : Keymaster 4.1 HAL service binary (Trustonic)
+  Source      : /vendor/bin/hw/ from stock ROM
+  Destination : recovery/root/vendor/bin/hw/
+  Why needed  : init.recovery.mt6768.rc starts vendor.keymaster-4-1-trustonic
+  CRITICAL    : YES — decryption will fail without this
+
+FILE 5: recovery/root/vendor/bin/mcDriverDaemon
+  Description : Mobicore / Trustonic TEE daemon binary
+  Source      : /vendor/bin/ from stock ROM
+  Destination : recovery/root/vendor/bin/
+  Why needed  : mobicore service defined in init.recovery.mt6768.rc
+  CRITICAL    : YES — TEE and decryption will fail without this
+
+FILE 6: recovery/root/vendor/app/mcRegistry/ (entire directory)
+  Description : Trustonic TEE trustlet registry files (.tlbin files)
+  Source      : /vendor/app/mcRegistry/ from stock ROM
+  Destination : recovery/root/vendor/app/mcRegistry/
+  Contents    : 020f0000000000000000000000000000.tlbin
+                020b0000000000000000000000000000.tlbin
+                (and all other .tlbin / .drbin files)
+  Why needed  : mcDriverDaemon (mobicore) loads these at startup
+  CRITICAL    : YES — TEE will not initialize without these
+
+FILE 7: recovery/root/vendor/lib64/ (vendor libraries)
+  Description : Vendor 64-bit shared libraries for crypto/TEE/keymaster
+  Source      : /vendor/lib64/ from stock ROM
+  Destination : recovery/root/vendor/lib64/
+  Key files   : libMcClient.so
+                libMcTeeKeymaster.so
+                libteecl.so
+                android.hardware.keymaster@4.1.so
+                android.hardware.gatekeeper@1.0.so
+                (copy all .so files referenced by the HAL services)
+  Why needed  : HAL services dlopen() these at runtime
+  CRITICAL    : YES — HAL services will crash without these
+
+FILE 8: recovery/root/vendor/firmware/ (firmware blobs)
+  Description : Modem, connectivity, and other firmware blobs
+  Source      : /vendor/firmware/ from stock ROM
+  Destination : recovery/root/vendor/firmware/
+  Why needed  : Some HAL services load firmware from this path
+  CRITICAL    : Recommended — some features may work without it
+
+FILE 9: recovery/root/vendor/thh/ (Trustonic TEE data)
+  Description : Trustonic THH (Trusted Hardware Hashing) data directory
+  Source      : /vendor/thh/ from stock ROM
+  Destination : recovery/root/vendor/thh/
+  Why needed  : Trustonic TEE integrity verification
+  CRITICAL    : YES — TEE secure boot verification fails without this
+
+FILE 10: recovery/root/system/bin/mtk_plpath_utils
+  Description : MTK partition path utility binary
+  Source      : /system/bin/mtk_plpath_utils from stock ROM
+  Destination : recovery/root/system/bin/mtk_plpath_utils
+  Why needed  : init.recovery.mt6768.rc calls this for partition symlinks
+  CRITICAL    : YES — boot slot symlinks will not be created without this
+
+FILE 11: recovery/root/init.vibrator.rc (PARTIALLY GENERATED)
+  Description : A stub init.vibrator.rc has been created in this PR.
+                If your device uses a vibrator HAL daemon (vibratorfe or
+                similar), extract the correct service definition from your
+                stock ROM's /vendor/etc/init/ or /system/etc/init/ and
+                replace the stub.
+  Source      : /vendor/etc/init/android.hardware.vibrator*.rc (stock ROM)
+  Destination : recovery/root/init.vibrator.rc (replace stub)
+  CRITICAL    : NO — TWRP will boot without vibration feedback
+
+========================================================
+  QUICK EXTRACTION COMMANDS SUMMARY
+========================================================
+
+# Step 1 — Extract kernel and dtb from boot.img
+magiskboot unpack boot.img
+cp kernel path/to/device/tree/prebuilt/kernel
+cp dtb    path/to/device/tree/prebuilt/dtb.img
+
+# Step 2 — Unpack super.img (if stock ROM uses it)
+lpunpack super.img ./super_out/
+
+# Step 3 — Mount vendor partition and copy blobs
+mkdir -p /tmp/vendor
+mount -o loop ./super_out/vendor.img /tmp/vendor
+
+# Copy binaries
+cp /tmp/vendor/bin/mcDriverDaemon \
+   recovery/root/vendor/bin/
+
+cp -r /tmp/vendor/bin/hw/ \
+   recovery/root/vendor/bin/
+
+# Copy libraries
+cp -r /tmp/vendor/lib64/ \
+   recovery/root/vendor/
+
+# Copy firmware
+cp -r /tmp/vendor/firmware/ \
+   recovery/root/vendor/
+
+# Copy TEE registry
+cp -r /tmp/vendor/app/mcRegistry/ \
+   recovery/root/vendor/app/
+
+# Copy TEE thh
+cp -r /tmp/vendor/thh/ \
+   recovery/root/vendor/
+
+# Step 4 — Mount system partition and copy mtk_plpath_utils
+mkdir -p /tmp/system
+mount -o loop ./super_out/system.img /tmp/system
+cp /tmp/system/bin/mtk_plpath_utils \
+   recovery/root/system/bin/mtk_plpath_utils
+
+# Unmount when done
+umount /tmp/vendor /tmp/system
+
+========================================================
+  AFTER ADDING ALL MISSING FILES
+========================================================
+Run a test build:
+  source build/envsetup.sh
+  lunch twrp_X663-eng
+  mka bootimage -j$(nproc)
+
+If the build succeeds, flash prebuilt/boot.img (which
+contains the TWRP recovery) using fastboot:
+  fastboot flash boot out/target/product/Infinix-X663/boot.img
+
+========================================================

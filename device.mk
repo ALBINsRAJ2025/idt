@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022 The LineageOS Project
+# Copyright (C) 2024 The TWRP Open Source Project
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -45,7 +45,11 @@ PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
 # API
 PRODUCT_SHIPPING_API_LEVEL := 30
-PRODUCT_TARGET_VNDK_VERSION := 31
+# FIX #11: Removed PRODUCT_TARGET_VNDK_VERSION (causes errors in TWRP trees)
+
+# FIX #13: Add MediaTek Soong namespaces needed for HAL resolution
+PRODUCT_SOONG_NAMESPACES += \
+    device/infinix/Infinix-X663
 
 # Boot control HAL
 PRODUCT_PACKAGES += \
@@ -89,8 +93,6 @@ PRODUCT_PACKAGES_DEBUG += \
     update_engine_client
 
 # Additional configs
-TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES += \
-    $(TARGET_OUT_SHARED_LIBRARIES)/android.hardware.keymaster@4.1
-
+# FIX #12: TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES moved to BoardConfig.mk
 TARGET_RECOVERY_DEVICE_MODULES += \
     android.hardware.keymaster@4.1
